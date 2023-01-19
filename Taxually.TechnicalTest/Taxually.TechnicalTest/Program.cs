@@ -1,15 +1,33 @@
-var builder = WebApplication.CreateBuilder(args);
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
 
-// Add services to the container.
+using EgonsoftHU.Extensions.DependencyInjection;
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder
+    .Host
+    .UseServiceProviderFactory(new AutofacServiceProviderFactory())
+    .ConfigureContainer<ContainerBuilder>(
+        (hostBuilderContext, containerBuilder) =>
+        {
+            containerBuilder
+                .UseDefaultAssemblyRegistry(nameof(Taxually))
+                .RegisterModule<DependencyModule>();
+        }
+    );
+
+builder.Services.AddControllers().AddControllersAsServices();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
